@@ -1,3 +1,33 @@
+#Front End Mobile app in React-Native for Andrios and IOS
+
+Food Waste is bas so heres an app to help control and track the items within your fridge controlled from a smartphone app food can be added by scanning the products barcode or manually for loose items without a ISBN or similar barcode.
+
+The frontend should consist of a form which allows the user to input a food item name
+which is then checked against a dictionary and the user told if it is, or is not, found in the
+dictionary.
+
+#Basic workflows:
+Recording expiry dates:
+a) Food item is scanned through the scanner machine attached to the refrigerator.
+b) The scanner machine records the expiry date and sends it to the backend cloud
+service.
+c) The backend cloud service stores the item name, quantity, and expiry date in a
+database.
+Retrieving expiry dates:
+a) User interacts with the app and wants to check list of food items in the refrigerator
+along with their expiry dates.
+b) The app sends user request to the backend cloud service, which stores the expiry
+dates of all the items in a database.
+c) The backend cloud service runs a query in its database and returns the requested
+results to the app.
+d) The app displays the results.
+
+#screens
+##Login
+##Home
+##Fridge
+##User Profile
+
 This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 # Getting Started
