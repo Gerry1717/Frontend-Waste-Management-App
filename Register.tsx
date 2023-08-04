@@ -1,11 +1,18 @@
-// screens/Register.tsx
-
 import React, {useState} from 'react';
-import {Alert, Button, TextInput, View, Text} from 'react-native';
+import {
+  Alert,
+  Button,
+  TextInput,
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  TouchableOpacity,
+} from 'react-native';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from './App';
 import validator from 'validator';
-import axios from 'axios'; // Import axios
+const fetch = require('node-fetch');
 
 type RegisterScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -21,7 +28,9 @@ const Register: React.FC<Props> = ({navigation}) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [name, setName] = useState('');
-  const [passwordError, setPasswordError] = useState(''); // New state for password error
+  const [passwordError, setPasswordError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [nameError, setNameError] = useState('');
 
   function validatePassword(passwordToTest) {
     var re = {
@@ -96,23 +105,28 @@ const Register: React.FC<Props> = ({navigation}) => {
       Alert.alert('Password does not meet the requirements.');
       return;
     }
-    // Submit to your API using axios
+
+    // Submit to your API using fetch
+    console.log(
+      'Name: ' + name + '\nUsername' + email + '\nPassword' + password,
+    );
     try {
-      const response = await axios.post(
-        'https://192.168.1.7/Register',
-        {name, username: email, password},
+      const response = await fetch(
+        'http://waste-management-app.eba-ygxewpyg.eu-west-2.elasticbeanstalk.com/api/Register',
         {
+          method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          httpsAgent: {
-            // Ignore SSL certificate errors for local development
-            rejectUnauthorized: false,
-          },
+          body: JSON.stringify({name, username: email, password}),
         },
       );
 
-      const data = response.data;
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+
+      const data = await response.json();
       if (data.message === 'User already exists') {
         Alert.alert('User already Registered');
       } else if (data.message === 'User registered successfully') {
@@ -121,32 +135,99 @@ const Register: React.FC<Props> = ({navigation}) => {
         Alert.alert('Something Went Wrong Please Try Again');
       }
     } catch (error) {
-      console.log('Error performing network request:', error.message);
+      console.log('Error performing network request:', error);
       // Handle error here, e.g., show error message to the user
       Alert.alert('Error occurred. Please try again later.');
     }
   };
 
   return (
-    <View>
-      <TextInput placeholder="Name" value={name} onChangeText={setName} />
-      <TextInput placeholder="Email" value={email} onChangeText={setEmail} />
+    <View style={styles.form}>
+      <View style={styles.logoContainer}>
+        <Image
+          style={styles.registerLogo}
+          source={require('./icons/regIcon.png')}
+        />
+      </View>
+
       <TextInput
+        style={styles.input}
+        placeholder="Name"
+        value={name}
+        onChangeText={setName}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        value={email}
+        onChangeText={text => {
+          setEmail(text);
+          if (text.length > 5 && !validator.isEmail(text)) {
+            setEmailError('Please enter a valid email');
+          } else {
+            setEmailError('');
+          }
+        }}
+      />
+      {emailError ? <Text style={styles.error}>{emailError}</Text> : null}
+      <TextInput
+        style={styles.input}
         placeholder="Password"
         value={password}
-        onChangeText={handlePasswordChange} // use the new handler
+        onChangeText={handlePasswordChange}
         secureTextEntry
       />
-      {passwordError ? <Text>{passwordError}</Text> : null}
+      {passwordError ? <Text style={styles.error}>{passwordError}</Text> : null}
       <TextInput
+        style={styles.input}
         placeholder="Confirm Password"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
       />
-      <Button title="Submit" onPress={handleSubmit} />
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <Text style={styles.submitButtonText}>Submit</Text>
+      </TouchableOpacity>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  form: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    backgroundColor: '#f5f5f5',
+  },
+  input: {
+    height: 40,
+    borderColor: '#000',
+    borderWidth: 1,
+    marginBottom: 10,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+    backgroundColor: '#ddd',
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 48,
+  },
+  registerLogo: {
+    width: 100,
+    height: 150,
+  },
+  error: {color: '#FFA500'},
+
+  submitButton: {
+    backgroundColor: '#FFA500',
+    padding: 10,
+    alignItems: 'center',
+    borderRadius: 4,
+  },
+  submitButtonText: {
+    color: 'black',
+    fontSizez: 16,
+  },
+});
 
 export default Register;

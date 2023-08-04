@@ -1,14 +1,18 @@
 import React, {useState, useEffect} from 'react';
 import {
-  Button,
   FlatList,
-  StyleSheet,
   Text,
   TextInput,
   View,
+  TouchableOpacity,
+  Alert,
 } from 'react-native';
+import * as Keychain from 'react-native-keychain';
 import {StackNavigationProp} from '@react-navigation/stack';
 import {RootStackParamList} from './App';
+import styles from './GlobalStyles';
+import FridgeAddPopup from './FridgePopupAddItem';
+import FridgeEditPopup from './FridgePopupEditItem';
 
 type FridgeScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -20,21 +24,70 @@ type Props = {
 };
 
 const Fridge: React.FC<Props> = ({navigation}) => {
-  const [items, setItems] = useState<string[]>([]);
-  const [filteredItems, setFilteredItems] = useState<string[]>([]);
+  const [items, setItems] = useState<any[]>([]);
+  const [filteredItems, setFilteredItems] = useState<any[]>([]);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [searchText, setSearchText] = useState<string>('');
+  const [products, setProducts] = useState<any[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [popuplVisible, setPopuplVisible] = useState(false);
 
-  // Fetching items from fridge (hardcoded here for simplicity)
+  const fetchData = async () => {
+    try {
+      const credentials = await Keychain.getGenericPassword({
+        service: 'user',
+      });
+      if (credentials && credentials.password) {
+        fetch(
+          'http://waste-management-app.eba-ygxewpyg.eu-west-2.elasticbeanstalk.com/api/user-fridge-items',
+          {
+            method: 'GET',
+            headers: {
+              Authorization: 'Bearer ' + credentials.password,
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+          .then(response => response.json())
+          .then(data => {
+            setItems(data);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+
+        // fetch the products
+        fetch(
+          'http://waste-management-app.eba-ygxewpyg.eu-west-2.elasticbeanstalk.com/api/products',
+          {
+            method: 'GET',
+            headers: {
+              Authorization: 'Bearer ' + credentials.password,
+              'Content-Type': 'application/json',
+            },
+          },
+        )
+          .then(response => response.json())
+          .then(data => {
+            setProducts(data);
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+      }
+    } catch (error) {
+      console.log('Error:', error);
+    }
+  };
+
   useEffect(() => {
-    setItems(['Milk      Expiry: 25/07/2023', 'Bread', 'Cheese', 'Butter', 'Ham']);
+    fetchData();
   }, []);
 
-  // Filtering items when searchText changes
   useEffect(() => {
     setFilteredItems(
       items.filter(item =>
-        item.toLowerCase().includes(searchText.toLowerCase()),
+        item.item.toLowerCase().includes(searchText.toLowerCase()),
       ),
     );
   }, [searchText, items]);
@@ -50,42 +103,46 @@ const Fridge: React.FC<Props> = ({navigation}) => {
       <FlatList
         data={filteredItems}
         renderItem={({item}) => (
-          <Text style={styles.item} onPress={() => setSelectedItem(item)}>
-            {item}
-          </Text>
+          <View>
+            <Text
+              style={styles.expiryDateTitle}
+              onPress={() => setSelectedItem(item)}>
+              {item.item}
+            </Text>
+            <Text style={styles.expiryDateText}>
+              Expiry: {new Date(item.expiry).toLocaleDateString()}
+            </Text>
+          </View>
         )}
-        keyExtractor={item => item}
+        keyExtractor={item => item._id}
       />
-      <Button
-        title="Edit Selected Item"
-        onPress={() => navigation.navigate('EditItem', {item: selectedItem})}
-        disabled={selectedItem === null}
+
+      <TouchableOpacity
+        style={styles.submitButton}
+        onPress={() => setPopuplVisible(true)}
+        disabled={selectedItem === null}>
+        <Text style={styles.submitButtonText}>Edit Selected Item</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.submitButton}
+        onPress={() => setModalVisible(true)}>
+        <Text style={styles.submitButtonText}>Add New Item</Text>
+      </TouchableOpacity>
+      <FridgeAddPopup
+        modalVisible={modalVisible}
+        setModalVisible={setModalVisible}
+        onAddSuccess={fetchData}
+        catalogueProducts={products}
       />
-      <Button
-        title="Add New Item"
-        onPress={() => navigation.navigate('AddItem')}
+      <FridgeEditPopup
+        modalVisible={popuplVisible}
+        setModalVisible={setPopuplVisible}
+        catalogueProducts={products}
+        itemToUpdate={selectedItem}
       />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 16,
-  },
-  searchBar: {
-    height: 40,
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
-  },
-  item: {
-    padding: 10,
-    fontSize: 18,
-    height: 44,
-  },
-});
 
 export default Fridge;
