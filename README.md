@@ -1,11 +1,11 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# Mobile Waste Management App
 
 # Getting Started
 
  Launch Android Emulator from Android Device Manager 
  Launch Docker Build and Run waste-management-api
  
-## Step 1: Start the Metro Server
+## Step 1: Start the Metro Server & android / IOS Emulator
 
 First, you will need to start **Metro**, the JavaScript _bundler_ that ships _with_ React Native.
 
@@ -19,7 +19,7 @@ npm start
 yarn start
 ```
 
-## Step 2: Start your Application
+## Step 2: Start the Application
 
 Let Metro Bundler run in its _own_ terminal. Open a _new_ terminal from the _root_ of your React Native project. Run the following command to start your _Android_ or _iOS_ app:
 
@@ -47,7 +47,7 @@ If everything is set up _correctly_, you should see your new app running in your
 
 This is one way to run your app — you can also run it directly from within Android Studio and Xcode respectively.
 
-## Step 3: Modifying your App
+## Step 3: Modifying The App
 
 Now that you have successfully run the app, let's modify it.
 
@@ -58,7 +58,7 @@ Now that you have successfully run the app, let's modify it.
 
 ## Congratulations! :tada:
 
-You've successfully run and modified your React Native App. :partying_face:
+You've successfully run the React Native App. :partying_face:
 
 ### Now what?
 
